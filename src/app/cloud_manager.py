@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import ClassVar
 
 import requests
@@ -9,7 +10,7 @@ from logger import logger_app
 
 
 @dataclass
-class CloudManager:
+class CloudDirManager:
     """Менеджер облачного хранилища"""
 
     headers: ClassVar[dict] = {
@@ -25,7 +26,7 @@ class CloudManager:
         """Инициализация токена"""
         self.headers["Authorization"] = f"OAuth {self.token}"
 
-    def get_dir_info(self) -> Response:
+    def get_dir_info(self) -> dict:
         """Получаем информацию о файлах в папке облачного хранилища"""
         url = f"{self.api_url}resources"
         params = {
@@ -38,13 +39,30 @@ class CloudManager:
             params=params,
             headers=self.headers,
         )
-        logger_app.debug("Сведения из облачного хранилища: {}", response.json())
-        return response
+        dir_info = response.json()
+        return dir_info
+
+    def get_files_stats(self) -> dict[str, dict[str, datetime]]:
+        """
+        Получаем информацию о дате и времени изменения файлов
+        :return: stats (dict), где:
+        ключ словаря - имя файла, значение словаря - {"modified": datetime}
+        """
+        stats = dict()
+        source_data = self.get_dir_info()
+        _embedded_data = source_data.get("_embedded")
+        items = _embedded_data.get("items")
+        for item in items:
+            name = item.get("name")
+            modified = item.get("modified")
+            dt_modified = datetime.fromisoformat(modified)
+            stats[name] = dict(modified=dt_modified)
+        return stats
 
 
-cloud_manager = CloudManager(
+cloud_manager = CloudDirManager(
     token=settings.auth_token,
     cloud_dir=settings.cloud_dir,
 )
 
-cloud_manager.get_dir_info()
+cloud_manager.get_files_stats()
