@@ -7,7 +7,7 @@ from loguru import logger
 BASE_DIR = Path(__file__).parent.absolute()
 LOGGING_LEVEL = "DEBUG"
 LOG_FILE = BASE_DIR / "logs" / "app.log"
-LOG_FILE_SIZE = 1024 * 5
+LOG_FILE_SIZE = 5 * 1024 * 1024
 LOG_FORMAT = (
     "{extra[logger_name]} - {time:YYYY-MM-DD HH:mm:ss,SSS} - {level} - {message}"
 )
