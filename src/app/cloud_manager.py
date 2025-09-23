@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import ClassVar
 
 import requests
@@ -50,14 +51,28 @@ class CloudDirManager:
         """
         stats = dict()
         source_data = self.get_dir_info()
-        _embedded_data = source_data.get("_embedded")
-        items = _embedded_data.get("items")
+        embedded_data = source_data.get("_embedded")
+        items = embedded_data.get("items")
         for item in items:
             name = item.get("name")
             modified = item.get("modified")
             dt_modified = datetime.fromisoformat(modified)
             stats[name] = dict(modified=dt_modified)
         return stats
+
+    def delete_file(self, file: Path):
+        """Метод удаления файла из облачного хранилища"""
+        logger_app.info("Файл {} удален из хранилища.", file)
+        pass
+
+    def upload_file(self, file: Path):
+        """Метод загрузки файла в облачное хранилище"""
+        logger_app.info("Файл {} загружен в хранилище", file)
+        pass
+
+    def update_file(self, file):
+        """Метод обновления файла в облачном хранилище"""
+        pass
 
 
 cloud_manager = CloudDirManager(
