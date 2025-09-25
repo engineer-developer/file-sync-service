@@ -1,11 +1,24 @@
 from os import stat_result
+from abc import ABC, abstractmethod
 
 from datetime import datetime, UTC
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator
 
-from config import settings
+
+@dataclass
+class HostDirManagerInterface(ABC):
+    """
+    Интерфейс менеджера папки на хосте
+    """
+
+    host_dir: Path
+
+    @abstractmethod
+    def get_info(self) -> dict[str, dict[str, datetime]]:
+        """Метод получения информации о хранящихся на хосте файлах"""
+        pass
 
 
 @dataclass
@@ -14,14 +27,14 @@ class HostFile:
 
     file: Path
 
-    def get_file_statinfo(self) -> stat_result:
+    def get_file_stat(self) -> stat_result:
         """Получаем информацию о файле"""
         stat = self.file.stat()
         return stat
 
     def get_modification_timestamp(self) -> int:
         """Получаем timestamp модификации файла"""
-        timestamp = int(self.get_file_statinfo().st_mtime)
+        timestamp = int(self.get_file_stat().st_mtime)
         return timestamp
 
     def get_modification_datetime(self) -> datetime:
@@ -32,31 +45,29 @@ class HostFile:
 
 
 @dataclass
-class HostDirManager:
+class HostDirManager(HostDirManagerInterface):
     """Класс менеджера папки на хосте"""
 
     host_dir: Path
 
-    def get_files_list(self, pattern="*") -> list[Path]:
-        """Получаем список файлов в папке"""
-        return list(self.host_dir.glob(pattern))
-
     def iterate_files(self, pattern="*") -> Iterator[Path]:
-        """Получаем итератор файлов в папке"""
+        """
+        Итератор файлов, размещенных в папке host_dir
+
+        :param pattern: маска выбора файлов
+        :return: итератор файлов
+        """
+
         return self.host_dir.glob(pattern)
 
-    def get_files_stats(self) -> dict[str, dict[str, datetime]]:
+    def get_info(self) -> dict[str, dict[str, datetime]]:
         """
-        Получаем информацию о дате и времени изменения файлов
-        :return: stats (dict), где:
-        ключ словаря - имя файла, значение словаря - {"modified": datetime}
+        Получаем информацию о дате изменения файлов
+        :return: stats (dict), где ключ словаря - имя файла, значение словаря - {"modified": datetime}
         """
-        stats = dict()
+        info = dict()
         for file in self.iterate_files():
-            host_file = HostFile(file)
-            stats[file.name] = dict(modified=host_file.get_modification_datetime())
-        return stats
-
-
-host_dir_manager = HostDirManager(settings.host_dir)
-host_dir_manager.get_files_stats()
+            if file.is_file():
+                host_file = HostFile(file)
+                info[file.name] = dict(modified=host_file.get_modification_datetime())
+        return info

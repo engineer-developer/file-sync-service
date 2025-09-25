@@ -9,7 +9,7 @@ import config
 LOG_FILE: Path = config.get_settings().log_file_path.absolute()
 LOG_FILE_SIZE: int = 5 * 1024 * 1024
 LOG_FORMAT: str = (
-    "{extra[logger_name]} - {time:YYYY-MM-DD HH:mm:ss,SSS} - {level} - {message}"
+    "{extra[logger_name]} - {time:YYYY-MM-DD HH:mm:ss,SSS} - {level} - {module} - {message}"
 )
 
 logger.remove()

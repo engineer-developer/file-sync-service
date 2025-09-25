@@ -73,6 +73,7 @@ class Settings:
         """Получаем путь к файлу лога"""
         log_file_path_env_name = "LOG_FILE_PATH"
         log_file_path = Path(self._get_env_value(log_file_path_env_name))
+        log_file_path.touch(exist_ok=True)
 
         if not log_file_path.exists():
             raise FileNotFoundError(f"Путь '{log_file_path}' не существует")
@@ -97,6 +98,3 @@ def get_settings() -> Settings:
     except (EnvironmentError, FileNotFoundError, NotADirectoryError, ValueError) as exc:
         print(f"Ошибка: {exc}")
         sys.exit(1)
-
-
-settings = get_settings()
